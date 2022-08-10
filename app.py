@@ -125,10 +125,8 @@ def login():
 def logout():
     """Handle logout of user and redirect to homepage."""
 
-    csrf_form = g.csrf_form
-
-    if csrf_form.validate_on_submit():
-        session.pop(CURR_USER_KEY)
+    if g.csrf_form.validate_on_submit():
+        do_logout()
         flash("You have been logged out.")
         return redirect("/login")
 
@@ -366,8 +364,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', user=g.user,
-                                            messages=messages)
+        return render_template('home.html', messages=messages)
 
     else:
         return render_template('home-anon.html')
