@@ -125,7 +125,7 @@ def logout():
     """Handle logout of user and redirect to homepage."""
 
     csrf_form = g.csrf_form
-
+    # DONE:
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
     if csrf_form.validate_on_submit():
@@ -165,14 +165,14 @@ def list_users():
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
-
+    
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user,csrf_form = g.csrf_form)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -339,7 +339,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages, csrf_form=csrf_form)
+        return render_template('home.html', user=g.user, messages=messages, csrf_form=csrf_form)
 
     else:
         return render_template('home-anon.html')

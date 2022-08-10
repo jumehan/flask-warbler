@@ -48,7 +48,7 @@ with open('generator/users.csv', 'w') as users_csv:
             email=fake.email(),
             username=fake.user_name(),
             image_url=choice(image_urls),
-            password='$2b$12$Q1PUFjhN/AWRQ21LbGYvjeLpZZB6lfZ1BPwifHALGO6oIbyC3CmJe',
+            password='password',
             bio=fake.sentence(),
             header_image_url=choice(header_image_urls),
             location=fake.city()
