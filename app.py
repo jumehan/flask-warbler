@@ -4,13 +4,15 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectionForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
 
 CURR_USER_KEY = "curr_user"
+
 
 app = Flask(__name__)
 
@@ -41,6 +43,10 @@ def add_user_to_g():
     else:
         g.user = None
 
+@app.before_request
+def csrf_protection():
+
+    g.csrf_form = CSRFProtectionForm()
 
 def do_login(user):
     """Log in user."""
@@ -118,10 +124,18 @@ def login():
 def logout():
     """Handle logout of user and redirect to homepage."""
 
-    form = g.csrf_form
+    csrf_form = g.csrf_form
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
+    if csrf_form.validate_on_submit():
+        session.pop(CURR_USER_KEY)
+        flash("You have been logged out.")
+        return redirect("/login")
+
+    else:
+        # didn't pass CSRF; ignore logout attempt
+        raise Unauthorized()
 
 
 ##############################################################################
@@ -316,6 +330,8 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
 
+    csrf_form = g.csrf_form
+
     if g.user:
         messages = (Message
                     .query
@@ -323,7 +339,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, csrf_form=csrf_form)
 
     else:
         return render_template('home-anon.html')
