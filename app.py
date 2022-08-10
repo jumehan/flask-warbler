@@ -6,7 +6,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectionForm
+from forms import (UserAddForm, LoginForm, MessageForm, CSRFProtectionForm,
+                   UpdateUserForm)
 from models import db, connect_db, User, Message
 
 load_dotenv()
@@ -125,9 +126,7 @@ def logout():
     """Handle logout of user and redirect to homepage."""
 
     csrf_form = g.csrf_form
-    # DONE:
-    # IMPLEMENT THIS AND FIX BUG
-    # DO NOT CHANGE METHOD ON ROUTE
+
     if csrf_form.validate_on_submit():
         session.pop(CURR_USER_KEY)
         flash("You have been logged out.")
@@ -159,20 +158,22 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users)
+    return render_template('users/index.html', users=users,
+                                               csrf_form = g.csrf_form)
 
 
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
-    
+
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user,csrf_form = g.csrf_form)
+    return render_template('users/show.html', user=user,
+                                              csrf_form = g.csrf_form)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -184,7 +185,8 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    return render_template('users/following.html', user=user,
+                                                   csrf_form = g.csrf_form)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -196,7 +198,8 @@ def show_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user)
+    return render_template('users/followers.html', user=user,
+                                                   csrf_form = g.csrf_form)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -239,7 +242,35 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    form = UpdateUserForm(obj = g.user)
+
+    if form.validate_on_submit():
+        user = User.authenticate(g.user.username, form.password.data)
+
+        if not user:
+            flash("Invalid password.", "danger")
+            
+        else:
+            g.user.username = form.username.data
+            g.user.email = form.email.data
+            g.user.image_url = form.image_url.data
+            g.user.header_image_url = form.header_image_url.data
+            g.user.bio = form.bio.data
+
+            db.session.commit()
+            flash("User updated.", "success")
+
+            return redirect(f'/users/{g.user.id}')
+
+
+    return render_template('users/edit.html', form=form,
+                                              csrf_form = g.csrf_form)
+
+
 
 
 @app.post('/users/delete')
@@ -339,7 +370,9 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', user=g.user, messages=messages, csrf_form=csrf_form)
+        return render_template('home.html', user=g.user,
+                                            messages=messages,
+                                            csrf_form=csrf_form)
 
     else:
         return render_template('home-anon.html')

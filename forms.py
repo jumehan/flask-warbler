@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length
+from wtforms.validators import DataRequired, Email, Length, URL
 
 
 class MessageForm(FlaskForm):
@@ -23,6 +23,15 @@ class LoginForm(FlaskForm):
 
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
+
+
+class UpdateUserForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    image_url = StringField('(Optional) Image URL', validators=[URL()])
+    header_image_url = StringField('(Optional) Image URL', validators=[URL()])
+    bio = TextAreaField('(Optional)')
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
 
 class CSRFProtectionForm(FlaskForm):
     """For actions where we want CSRF protection, but don't need any fields.
