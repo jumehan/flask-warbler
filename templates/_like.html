@@ -1,0 +1,10 @@
+<form action="/like" method="POST">
+  {{ g.csrf_form.hidden_tag() }}
+
+  {% if msg in g.user.liked_messages %}
+  <button class="bi bi-heart-fill"></button>
+
+  {%else%}
+  <button class="bi bi-heart"></button>
+  {%endif%}
+</form>
