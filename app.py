@@ -158,8 +158,7 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users,
-                                               csrf_form = g.csrf_form)
+    return render_template('users/index.html', users=users)
 
 
 @app.get('/users/<int:user_id>')
@@ -172,8 +171,7 @@ def show_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user,
-                                              csrf_form = g.csrf_form)
+    return render_template('users/show.html', user=user)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -185,8 +183,7 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user,
-                                                   csrf_form = g.csrf_form)
+    return render_template('users/following.html', user=user)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -198,8 +195,7 @@ def show_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user,
-                                                   csrf_form = g.csrf_form)
+    return render_template('users/followers.html', user=user)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -267,8 +263,7 @@ def profile():
             return redirect(f'/users/{g.user.id}')
 
 
-    return render_template('users/edit.html', form=form,
-                                              csrf_form = g.csrf_form)
+    return render_template('users/edit.html', form=form)
 
 
 
@@ -361,21 +356,23 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
 
-    csrf_form = g.csrf_form
-
     if g.user:
+        followings = [following.id for following in g.user.following]
+        followings.append(g.user.id)
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(followings) )
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
 
         return render_template('home.html', user=g.user,
-                                            messages=messages,
-                                            csrf_form=csrf_form)
+                                            messages=messages)
 
     else:
         return render_template('home-anon.html')
+
+        # where message.user is in user.following
 
 
 ##############################################################################
