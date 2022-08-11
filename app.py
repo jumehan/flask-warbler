@@ -26,6 +26,7 @@ app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
+app.config['DEBUG_TB_HOSTS'] = ['dant-shw-debug-toolbar']
 
 connect_db(app)
 

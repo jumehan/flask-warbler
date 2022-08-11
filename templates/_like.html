@@ -6,10 +6,10 @@
   {% if msg not in g.user.messages %}
 
   {% if msg in g.user.liked_messages %}
-      <button class="bi bi-heart-fill" ></button>
+      <button class="btn btn-info btn-link" ><i class="bi bi-heart-fill"></i></button>
 
     {% else%}
-      <button class="bi bi-heart"></button>
+    <button class="btn btn-info btn-link" ><i class="bi bi-heart"></i></button>
     {% endif %}
 {% endif %}
 </form>
