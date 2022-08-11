@@ -8,7 +8,7 @@ from werkzeug.exceptions import Unauthorized
 
 from forms import (UserAddForm, LoginForm, MessageForm, CSRFProtectionForm,
                    UpdateUserForm)
-from models import db, connect_db, User, Message, Like
+from models import db, connect_db, User, Message
 
 load_dotenv()
 
