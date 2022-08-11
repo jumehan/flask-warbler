@@ -7,8 +7,10 @@
 
 import os
 from unittest import TestCase
-
+from flask import session
 from models import db, User, Message, Follows
+
+CURR_USER_KEY = 'curr_user'
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -98,21 +100,96 @@ class UserModelTestCase(TestCase):
                             follow_redirects=True)
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
-            self.assertIn("Username already taken", html)
+            self.assertIn("Username or Email already taken", html)
             self.assertIn("<!--Testing string for signup!!!!!! :)-->", html)
 
-#     def test_user_authenticate(self):
-#         """Test that the authenticate route works properly
-#         - successful login given valid username and password
-#         - fails if username not found
-#         - fails if username and password do not match"""
-#         ...
+    def test_user_signup_fail_email(self):
+        """Test that the signup route works properly
+        - fails if u3 provides invalid credentials: invalid email
+        & redirects to signup
+        """
+        with self.client as c:
+            resp = c.post(
+                            "/signup",
+                            data={
+                                "username": "u3",
+                                "password": "password",
+                                "email": "u2@email.com",
+                                "image_url": None,
+                            },
+                            follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Username or Email already taken", html)
+            self.assertIn("<!--Testing string for signup!!!!!! :)-->", html)
 
-#     def test_user_logout(self):
-#         """Test that the logout route works properly
-#         - cannot logout without an existing user
-#         - successful logs out previously logged in user and erases the session"""
-#         ...
+    def test_user_authenticate(self):
+        """Test that the authenticate route works properly
+        - successful login given valid username and password"""
+        
+        with self.client as c:
+            resp = c.post(
+                            "/login",
+                            data={
+                                "username": "u1",
+                                "password": "password",
+                            },
+                            follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--String for testing: Home route!!!!!:)-->", html)
+            self.assertIn("@u1", html)
+
+    def test_user_authenticate_fail_username(self):
+        """Test that the authenticate route works properly
+        - fails if username not found"""
+        
+        with self.client as c:
+            resp = c.post(
+                            "/login",
+                            data={
+                                "username": "u3",
+                                "password": "password",
+                            },
+                            follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--String for testing: Login route!!!!!:(-->", html)
+            self.assertIn("Invalid credentials.", html)
+
+    def test_user_authenticate_fail_username_pwd(self):
+        """Test that the authenticate route works properly
+        - fails if incorrect password/username combination"""
+        
+        with self.client as c:
+            resp = c.post(
+                            "/login",
+                            data={
+                                "username": "u1",
+                                "password": "BADpassword",
+                            },
+                            follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--String for testing: Login route!!!!!:(-->", html)
+            self.assertIn("Invalid credentials.", html)
+
+    def test_user_logout(self):
+        """Test that the logout route works properly
+        -successful logs out previously logged in user and erases the session"""
+        
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+                resp = c.post(
+                                "/logout",
+                                data={},
+                                follow_redirects=True)
+                self.assertEqual(resp.status_code, 200)
+                html = resp.get_data(as_text=True)
+                self.assertEqual(sess['_fresh'],False)
+                self.assertIn("<!--String for testing: Login route!!!!!:(-->", html)
+                self.assertIn("You have been logged out.", html)
 
 
 # class FollowModelTestCase(TestCase):
