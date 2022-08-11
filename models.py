@@ -75,7 +75,10 @@ class User(db.Model):
         nullable=False,
     )
 
-    messages = db.relationship('Message', backref="user")
+    messages = db.relationship('Message', 
+                                backref="user",
+                                cascade="all, delete",
+                                passive_deletes=True,)
 
     followers = db.relationship(
         "User",
