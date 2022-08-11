@@ -376,21 +376,19 @@ def homepage():
 def toggle_like(message_id):
     """add or remove like from warble"""
 
-    
-
     if not g.user or not g.csrf_form.validate_on_submit():
         flash("Access unauthorized.", "danger")
         return redirect("/")
         
     liked_message = Message.query.get_or_404(message_id)
 
+    #toggle like 
     if liked_message in g.user.liked_messages:
         g.user.liked_messages.remove(liked_message)
-    
     else:
         g.user.liked_messages.append(liked_message)
-
     db.session.commit()
+    
     return redirect ('/')
 
 
