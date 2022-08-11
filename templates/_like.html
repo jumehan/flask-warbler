@@ -2,12 +2,14 @@
 
 <form action="/messages/{{msg.id}}/like" method="POST">
   {{ g.csrf_form.hidden_tag() }}
-    
+
+  {% if msg not in g.user.messages %}
+
   {% if msg in g.user.liked_messages %}
       <button class="bi bi-heart-fill" ></button>
 
-    {% else %}
+    {% else%}
       <button class="bi bi-heart"></button>
     {% endif %}
-
+{% endif %}
 </form>

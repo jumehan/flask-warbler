@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-from flask import Flask, render_template, request, flash, redirect, session, g 
+from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
@@ -247,7 +247,7 @@ def profile():
 
         if not user:
             flash("Invalid password.", "danger")
-            
+
         else:
             g.user.username = form.username.data
             g.user.email = form.email.data
@@ -262,8 +262,6 @@ def profile():
 
 
     return render_template('users/edit.html', form=form)
-
-
 
 
 @app.post('/users/delete')
@@ -376,22 +374,35 @@ def homepage():
 def toggle_like(message_id):
     """add or remove like from warble"""
 
-    if not g.user or not g.csrf_form.validate_on_submit():
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-        
     liked_message = Message.query.get_or_404(message_id)
 
-    #toggle like 
+    if (not g.user
+        or not g.csrf_form.validate_on_submit()
+        or liked_message in g.user.messages):
+
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    #toggle like
     if liked_message in g.user.liked_messages:
         g.user.liked_messages.remove(liked_message)
     else:
         g.user.liked_messages.append(liked_message)
     db.session.commit()
-    
+
     return redirect ('/')
 
+@app.get('/users/<int:user_id>/likes')
+def show_user_liked_messages(user_id):
+    """Show user's liked messages."""
 
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template('users/show_liked.html', user=user)
 
 
 ##############################################################################
