@@ -1,14 +1,14 @@
 import os
 from dotenv import load_dotenv
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g 
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
 from forms import (UserAddForm, LoginForm, MessageForm, CSRFProtectionForm,
                    UpdateUserForm)
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Like
 
 load_dotenv()
 
@@ -369,7 +369,31 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
-        # where message.user is in user.following
+##############################################################################
+# Likes routes:
+
+@app.post('/messages/<int:message_id>/like')
+def toggle_like(message_id):
+    """add or remove like from warble"""
+
+    
+
+    if not g.user or not g.csrf_form.validate_on_submit():
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+        
+    liked_message = Message.query.get_or_404(message_id)
+
+    if liked_message in g.user.liked_messages:
+        g.user.liked_messages.remove(liked_message)
+    
+    else:
+        g.user.liked_messages.append(liked_message)
+
+    db.session.commit()
+    return redirect ('/')
+
+
 
 
 ##############################################################################

@@ -182,7 +182,7 @@ class Like(db.Model):
 
     __tablename__ = 'likes'
 
-    messages_id = db.Column(
+    message_id = db.Column(
         db.Integer,
         db.ForeignKey('messages.id', ondelete="cascade"),
         primary_key=True,
