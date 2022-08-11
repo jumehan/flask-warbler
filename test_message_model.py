@@ -39,6 +39,7 @@ class MessageModelTestCase(TestCase):
 
         msg1 = Message(text="test_text", user_id=u1.id)
 
+        db.session.add(msg1)
         db.session.commit()
         self.msg1_id = msg1.id
 
@@ -48,16 +49,15 @@ class MessageModelTestCase(TestCase):
         db.session.rollback()
 
     def test_message_model(self):
-        msg1 = User.query.get(self.msg1_id)
+        msg1 = Message.query.get(self.msg1_id)
         u1 = User.query.get(self.u1_id)
 
-        self.assertEqual(len(msg1.user), u1)
+        self.assertEqual(msg1.user, u1)
 
     def test_message_repr(self):
         """Test that the message repr works properly
         - shows msg1's id, text, timestamp and user_id"""
-        msg1 = User.query.get(self.msg1_id)
+        msg1 = Message.query.get(self.msg1_id)
 
         self.assertEqual(repr(msg1),
-                         f"""<Message #{self.msg1_id}:
-                         "test_text", {msg1.timestamp}, {self.u1_id}>""")
+                         f"<Msg #{self.msg1_id}: test_text, {msg1.timestamp}, {self.u1_id}>")

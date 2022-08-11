@@ -185,8 +185,7 @@ class Message(db.Model):
     )
 
     def __repr__(self):
-        return f"""<Message #{self.id}:
-                             {self.text}, {self.timestamp}, {self.user_id}>"""
+        return f"<Msg #{self.id}: {self.text}, {self.timestamp}, {self.user_id}>"
 
 
 class Like(db.Model):
