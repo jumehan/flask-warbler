@@ -363,7 +363,14 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        liked_messages = {message.id for message in g.user.liked_messages}
+        user_messages = {message.id for message in g.user.messages}
+        
+
+        return render_template('home.html', 
+                                messages=messages, 
+                                liked_messages=liked_messages,
+                                user_messages=user_messages,)
 
     else:
         return render_template('home-anon.html')

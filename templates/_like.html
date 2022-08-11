@@ -3,13 +3,17 @@
 <form action="/messages/{{msg.id}}/like" method="POST">
   {{ g.csrf_form.hidden_tag() }}
 
-  {% if msg not in g.user.messages %}
+  {% if msg.id not in user_messages %}
 
-  {% if msg in g.user.liked_messages %}
-      <button class="btn btn-info btn-link" ><i class="bi bi-heart-fill"></i></button>
+    {% if msg.id in liked_messages %}
+        <button class="btn btn-info btn-link" >
+          <i class="bi bi-heart-fill"></i>
+        </button>
 
-    {% else%}
-    <button class="btn btn-info btn-link" ><i class="bi bi-heart"></i></button>
-    {% endif %}
+      {% else%}
+        <button class="btn btn-info btn-link" >
+          <i class="bi bi-heart"></i>
+        </button>
+      {% endif %}
 {% endif %}
 </form>
