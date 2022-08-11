@@ -184,6 +184,10 @@ class Message(db.Model):
         nullable=False,
     )
 
+    def __repr__(self):
+        return f"""<Message #{self.id}:
+                             {self.text}, {self.timestamp}, {self.user_id}>"""
+
 
 class Like(db.Model):
     """Like model."""
