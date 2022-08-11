@@ -25,8 +25,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
-toolbar = DebugToolbarExtension(app)
-app.config['DEBUG_TB_HOSTS'] = ['dant-shw-debug-toolbar']
+# toolbar = DebugToolbarExtension(app)
+# app.config['DEBUG_TB_HOSTS'] = ['dant-shw-debug-toolbar']
 
 connect_db(app)
 
@@ -365,10 +365,10 @@ def homepage():
 
         liked_messages = {message.id for message in g.user.liked_messages}
         user_messages = {message.id for message in g.user.messages}
-        
 
-        return render_template('home.html', 
-                                messages=messages, 
+
+        return render_template('home.html',
+                                messages=messages,
                                 liked_messages=liked_messages,
                                 user_messages=user_messages,)
 

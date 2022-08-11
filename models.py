@@ -29,6 +29,10 @@ class Follows(db.Model):
         primary_key=True,
     )
 
+    def __repr__(self):
+        return f"""<Followed user_id #{self.user_being_followed_id},
+                    following user_id #{self.user_following_id}>"""
+
 
 class User(db.Model):
     """User in the system."""
@@ -75,7 +79,7 @@ class User(db.Model):
         nullable=False,
     )
 
-    messages = db.relationship('Message', 
+    messages = db.relationship('Message',
                                 backref="user",
                                 cascade="all, delete",
                                 passive_deletes=True,)
