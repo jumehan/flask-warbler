@@ -7,9 +7,7 @@
 
 import os
 from unittest import TestCase
-from models import db, User
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import exc
+from models import db, User, Follows
 from sqlalchemy.exc import IntegrityError
 
 CURR_USER_KEY = 'curr_user'
@@ -36,7 +34,9 @@ db.create_all()
 
 class UserModelTestCase(TestCase):
     def setUp(self):
+        Follows.query.delete()
         User.query.delete()
+
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
         u2 = User.signup("u2", "u2@email.com", "password", None)
@@ -65,7 +65,11 @@ class UserModelTestCase(TestCase):
         self.assertEqual(repr(u1), f"<User #{self.u1_id}: u1, u1@email.com>")
 
     def test_user_signup(self):
-        """Test that the user signup works properly"""
+        """Test that the user signup works properly
+        -valid username and email commit successfully to db
+        -invalid username raise integrity error
+        -invalid email raise integrity error
+        """
 
         # valid username and email
         u3 = User.signup("u3", "u3@email.com", "password", None)
@@ -82,7 +86,11 @@ class UserModelTestCase(TestCase):
         self.assertRaises(IntegrityError, db.session.commit)
 
     def test_user_authenticate(self):
-        """Test that the classmethod authenticate()"""
+        """Test that the classmethod authenticate functions as expected:
+        -valid username and email returns user
+        -invalid username returns false
+        -invalid username and password combination returns false
+        """
 
         # valid username and email
         u2 = User.authenticate("u2", "password")
@@ -93,4 +101,27 @@ class UserModelTestCase(TestCase):
 
         # invalid username and password combination
         self.assertFalse(User.authenticate("u1", "BADpassword"))
+
+    def test_is_followed_by(self):
+        """Test that the is_followed_by method
+        -u1 is followed by u2 returns true
+        -u2 is followed by u1 returns false
+        """
+        follow = Follows(
+                          user_being_followed_id=self.u1_id,
+                          user_following_id=self.u2_id,
+                          )
+        
+        db.session.add(follow)
+        db.session.commit()
+        
+        u1 = User.query.get(self.u1_id)
+        u2 = User.query.get(self.u2_id)
+        
+        # u1 is followed by u2 returns true
+        self.assertTrue(u1.is_followed_by(u2))
+        
+        # u2 is followed by u1 returns false
+        self.assertFalse(u2.is_followed_by(u1))
+
 
