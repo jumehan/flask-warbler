@@ -49,10 +49,12 @@ class MessageModelTestCase(TestCase):
         db.session.rollback()
 
     def test_message_model(self):
+        """Test message model"""
         msg1 = Message.query.get(self.msg1_id)
         u1 = User.query.get(self.u1_id)
 
         self.assertEqual(msg1.user, u1)
+        #TODO: length of user.messages is 1 & test likes
 
     def test_message_repr(self):
         """Test that the message repr works properly

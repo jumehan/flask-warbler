@@ -74,12 +74,15 @@ class UserModelTestCase(TestCase):
         u3 = User.signup("u3", "u3@email.com", "password", None)
         db.session.commit()
         self.assertEqual(User.query.get(u3.id).username, "u3")
+        #TODO: assertIn email and a asserNotEqual password and hashed_pwd incl $2b$
 
+    def test_user_signup_invalid_user(self):
         # invalid username
         User.signup("u2", "u4@email.com", "password", None)
         self.assertRaises(IntegrityError, db.session.commit)
         db.session.rollback()
 
+    def test_user_signup_invalid_email(self):
         # invalid email
         User.signup("u5", "u2@email.com", "password", None)
         self.assertRaises(IntegrityError, db.session.commit)
@@ -94,7 +97,7 @@ class UserModelTestCase(TestCase):
         # valid username and email
         u2 = User.authenticate("u2", "password")
         self.assertEqual(User.query.get(self.u2_id), u2)
-
+    #TODO: breakup the tests
         # invalid username
         self.assertFalse(User.authenticate("u3", "password"))
 
@@ -146,3 +149,4 @@ class UserModelTestCase(TestCase):
         self.assertTrue(u2.is_following(u1))
 
 
+    #TODO: test relationships (.following, .followers)
