@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
-
+from functools import wraps
 from forms import (UserAddForm, LoginForm, MessageForm, CSRFProtectionForm,
                    UpdateUserForm)
 from models import db, connect_db, User, Message
@@ -49,6 +49,14 @@ def add_user_to_g():
 def csrf_protection():
 
     g.csrf_form = CSRFProtectionForm()
+
+#TODO: refactor to remove auth logged into session check from every route
+# def logged_in(f):
+#     @wraps(f)
+#     def decorated_func():
+#         if not g.user:
+#             flash("Access unauthorized.", "danger")
+#             return redirect("/")
 
 def do_login(user):
     """Log in user."""
