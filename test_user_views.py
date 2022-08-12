@@ -15,7 +15,7 @@ app.config['WTF_CSRF_ENABLED'] = False
 db.create_all()
 
 
-class UserViewTestCase(TestCase):
+class UserBaseViewTestCase(TestCase):
     def setUp(self):
         Follows.query.delete()
         User.query.delete()
@@ -43,6 +43,7 @@ class UserViewTestCase(TestCase):
     def tearDown(self):
         db.session.rollback()
 
+class UserAddViewTestCase(UserBaseViewTestCase):
     def test_user_signup_success(self):
         """Test that the signup route works properly
         - can create a new u3 user account given valid credentials
@@ -101,8 +102,9 @@ class UserViewTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
             self.assertIn("Username or Email already taken", html)
-            ollow_redirects=True,
 
+
+class UserAuthenticationTestCase(UserBaseViewTestCase):
     def test_user_authenticate(self):
         """Test that the authenticate route works properly
         - successful login given valid username and password"""
@@ -168,6 +170,7 @@ class UserViewTestCase(TestCase):
             self.assertIn("<!--String for testing: Login route!!!!!:(-->", html)
             self.assertIn("You have been logged out.", html)
 
+class UsersViewTestCase(UserBaseViewTestCase):
     def test_list_users_in_session(self):
         """Test that list_users route works properly"""
 
@@ -194,6 +197,7 @@ class UserViewTestCase(TestCase):
             html = resp.get_data(as_text=True)
             self.assertIn("Access unauthorized.", html)
 
+class UserProfileViewTestCase(UserBaseViewTestCase):
     def test_show_user_profile_in_session(self):
         """Test that show_user_profile route works properly"""
 
@@ -279,6 +283,7 @@ class UserViewTestCase(TestCase):
             html = resp.get_data(as_text=True)
             self.assertIn("Access unauthorized.", html)
 
+class UsersModifyFollowTestCase(UserBaseViewTestCase):
     def test_start_following_in_session(self):
         """Test that start_following route follows a user and redirects to
         following page """
@@ -343,7 +348,7 @@ class UserViewTestCase(TestCase):
             html = resp.get_data(as_text=True)
             self.assertIn("Access unauthorized.", html)
 
-
+class UserViewEditProfileTestCase(UserBaseViewTestCase):
     def test_show_user_edit_profile_in_session(self):
         """Test user profile route renders correctly when in session"""
 
@@ -415,7 +420,7 @@ class UserViewTestCase(TestCase):
             self.assertIn("u7", html)
             self.assertIn("Hey there unique testing bio!", html)
 
-
+class UserViewDeleteUserCase(UserBaseViewTestCase):
     def test_delete_user_in_session(self):
         """Test user profile flashes alert re-renders update form"""
 
