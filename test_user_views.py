@@ -3,7 +3,6 @@
 import os
 from unittest import TestCase
 from models import db, User, Follows
-from sqlalchemy.exc import IntegrityError
 
 CURR_USER_KEY = 'curr_user'
 

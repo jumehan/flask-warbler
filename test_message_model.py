@@ -4,7 +4,6 @@
 import os
 from unittest import TestCase
 from models import db, User, Message
-from sqlalchemy.exc import IntegrityError
 
 
 # BEFORE we import our app, let's set an environmental variable
