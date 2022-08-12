@@ -1,35 +1,15 @@
-#render_template for signup
-
-"""User model tests."""
-
-# run these tests like:
-#
-#    python -m unittest test_user_model.py
-
+"""User view tests."""
 
 import os
 from unittest import TestCase
-from flask import session
-from models import db, User, Message, Follows
+from models import db, User, Follows
 
 CURR_USER_KEY = 'curr_user'
 
-# BEFORE we import our app, let's set an environmental variable
-# to use a different database for tests (we need to do this
-# before we import our app, since that will have already
-# connected to the database
-
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
-# Now we can import app
-
 from app import app
-
 app.config['WTF_CSRF_ENABLED'] = False
-
-# Create our tables (we do this here, so we only create the tables
-# once for all tests --- in each test, we'll delete the data
-# and create fresh new clean test data
 
 db.create_all()
 
@@ -49,14 +29,6 @@ class UserViewTestCase(TestCase):
 
     def tearDown(self):
         db.session.rollback()
-
-    def test_user_model(self):
-        u1 = User.query.get(self.u1_id)
-
-        # User should have no messages & no followers
-        self.assertEqual(len(u1.messages), 0)
-        self.assertEqual(len(u1.followers), 0)
-
 
     def test_user_signup_success(self):
         """Test that the signup route works properly
@@ -183,6 +155,88 @@ class UserViewTestCase(TestCase):
             self.assertIn("<!--String for testing: Login route!!!!!:(-->", html)
             self.assertIn("You have been logged out.", html)
 
+    def test_list_users_in_session(self):
+        """Test that list_users route works properly"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess['curr_user'] = self.u1_id
+
+            resp = c.get("/users")
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--Test string for index page!!!!! :D-->", html)
+            self.assertIn("@u1", html)
+            self.assertIn("@u2", html)
+
+    def test_list_users_not_in_session(self):
+        """Test that list_users route
+        redirects to register page if user not logged in
+        and flashes unauthorized"""
+
+        with self.client as c:
+
+            resp = c.get("/users", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_show_user_profile_in_session(self):
+        """Test that show_user_profile route works properly"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess['curr_user'] = self.u1_id
+
+            resp = c.get(f"/users/{self.u1_id}")
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--Test string for user details!!!!! :D-->", html)
+            self.assertIn("<!--Test string for show page-->", html)
+            self.assertIn("@u1", html)
+
+    def test_show_user_profile_not_in_session(self):
+        """Test that user profile route
+        redirects to register page if user not logged in
+        and flashes unauthorized"""
+
+        with self.client as c:
+
+            resp = c.get(f"/users/{self.u1_id}", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_show_following_in_session(self):
+        """Test that show_following route works properly"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess['curr_user'] = self.u1_id
+
+            resp = c.get(f"/users/{self.u1_id}/following")
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--Test string for user details!!!!! :D-->", html)
+            self.assertIn("<!--Test string for following page-->", html)
+            self.assertIn("@u1", html)
+            self.assertNotIn("@u2", html)
+
+    def test_show_following_not_in_session(self):
+        """Test that show_following route
+        redirects to register page if user not logged in
+        and flashes unauthorized"""
+
+        with self.client as c:
+
+            resp = c.get(f"/users/{self.u1_id}/following", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+            
+#TODO: COPY the above 2 tests for user_followers
 
 # class FollowModelTestCase(TestCase):
 #     def setUp(self):
