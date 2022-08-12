@@ -256,11 +256,18 @@ def profile():
             g.user.header_image_url = form.header_image_url.data
             g.user.bio = form.bio.data
 
-            db.session.commit()
+            try:
+                db.session.commit()
+                
+            except IntegrityError:
+                db.session.rollback()
+                flash("Username or Email already taken", 'danger')
+                return render_template('users/edit.html', form=form)
+
+            
             flash("User updated.", "success")
 
             return redirect(f'/users/{g.user.id}')
-
 
     return render_template('users/edit.html', form=form)
 
