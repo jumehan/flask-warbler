@@ -52,7 +52,22 @@ class MessageBaseViewTestCase(TestCase):
 
 
 class MessageAddViewTestCase(MessageBaseViewTestCase):
+    def test_render_add_message(self):
+        """Test if a logged in user can view form to add a message."""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+            resp = c.get("/messages/new")
+
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!--Test string to add a new message!!!:^)-->", html)
+
     def test_add_message(self):
+        """Test if logged in user can add a message."""
         # Since we need to change the session to mimic logging in,
         # we need to use the changing-session trick:
         with self.client as c:
@@ -64,5 +79,79 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             resp = c.post("/messages/new", data={"text": "Hello"})
 
             self.assertEqual(resp.status_code, 302)
-
             Message.query.filter_by(text="Hello").one()
+
+    def test_add_message_user_logged_out(self):
+        """Test if logged out user can add messages."""
+
+        with self.client as c:
+
+            resp = c.get("/messages/new", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+
+class MessageDeleteViewTestCase(MessageBaseViewTestCase):
+    def test_delete_message(self):
+        """Test if logged in user can delete a message."""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.post(f"/messages/{self.m1_id}/delete", follow_redirects=True)
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(Message.query.filter_by(id=self.m1_id).count(), 0)
+            self.assertIn("<!--Test string for user details!!!!! :D-->", html)
+            self.assertIn("<!--Test string for show page-->", html)
+            self.assertIn("@u1", html)
+
+    def test_delete_message_user_logged_out(self):
+        """Test if logged out user can delete messages."""
+
+        with self.client as c:
+
+            resp = c.post(f"/messages/{self.m1_id}/delete", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+
+class MessageDetailViewTestCase(MessageBaseViewTestCase):
+    def test_show_message(self):
+        """Test if logged in user can see a message."""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f"/messages/{self.m1_id}")
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("<!--Test string for show message detail-->", html)
+            self.assertIn("Delete", html)
+            self.assertIn("@u1", html)
+
+    def test_show_message_404(self):
+        """Test if logged in user can see a message that doesn't exist."""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get("/messages/0")
+
+            self.assertEqual(resp.status_code, 404)
+
+    def test_show_message_user_logged_out(self):
+        """Test if logged out user can see a message."""
+
+        with self.client as c:
+
+            resp = c.get(f"/messages/{self.m1_id}", follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("Access unauthorized.", html)
+

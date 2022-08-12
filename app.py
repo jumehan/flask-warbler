@@ -258,13 +258,13 @@ def profile():
 
             try:
                 db.session.commit()
-                
+
             except IntegrityError:
                 db.session.rollback()
                 flash("Username or Email already taken", 'danger')
                 return render_template('users/edit.html', form=form)
 
-            
+
             flash("User updated.", "success")
 
             return redirect(f'/users/{g.user.id}')
@@ -282,7 +282,7 @@ def delete_user():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-
+    #TODO: it feels wrong to no ask for a password here, would bring it up to the big man.
     do_logout()
 
     db.session.delete(g.user)
