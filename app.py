@@ -1,14 +1,18 @@
 import os
 from dotenv import load_dotenv
-
 from flask import Flask, render_template, request, flash, redirect, session, g
-from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
-from functools import wraps
-from forms import (UserAddForm, LoginForm, MessageForm, CSRFProtectionForm,
-                   UpdateUserForm)
+from forms import (
+    UserAddForm,
+    LoginForm,
+    MessageForm,
+    CSRFProtectionForm,
+    UpdateUserForm,
+    )
 from models import db, connect_db, User, Message
+# from flask_debugtoolbar import DebugToolbarExtension
+# from functools import wraps
 
 load_dotenv()
 
@@ -45,18 +49,20 @@ def add_user_to_g():
     else:
         g.user = None
 
+
 @app.before_request
 def csrf_protection():
-
+    """CSRFProtectionForm"""
     g.csrf_form = CSRFProtectionForm()
 
-#TODO: refactor to remove auth logged into session check from every route
+# TODO: refactor to remove auth logged into session check from every route
 # def logged_in(f):
 #     @wraps(f)
 #     def decorated_func():
 #         if not g.user:
 #             flash("Access unauthorized.", "danger")
 #             return redirect("/")
+
 
 def do_login(user):
     """Log in user."""
@@ -249,7 +255,7 @@ def profile():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    form = UpdateUserForm(obj = g.user)
+    form = UpdateUserForm(obj=g.user)
 
     if form.validate_on_submit():
         user = User.authenticate(g.user.username, form.password.data)
@@ -272,7 +278,6 @@ def profile():
                 flash("Username or Email already taken", 'danger')
                 return render_template('users/edit.html', form=form)
 
-
             flash("User updated.", "success")
 
             return redirect(f'/users/{g.user.id}')
@@ -290,7 +295,7 @@ def delete_user():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    #TODO: it feels wrong to no ask for a password here, would bring it up to the big man.
+    # TODO: it feels wrong to no ask for a password here, would bring it up to the big man.
     do_logout()
 
     db.session.delete(g.user)
@@ -373,7 +378,7 @@ def homepage():
         followings.append(g.user.id)
         messages = (Message
                     .query
-                    .filter(Message.user_id.in_(followings) )
+                    .filter(Message.user_id.in_(followings))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
@@ -381,17 +386,17 @@ def homepage():
         liked_messages = {message.id for message in g.user.liked_messages}
         user_messages = {message.id for message in g.user.messages}
 
-
         return render_template('home.html',
-                                messages=messages,
-                                liked_messages=liked_messages,
-                                user_messages=user_messages,)
+                               messages=messages,
+                               liked_messages=liked_messages,
+                               user_messages=user_messages,)
 
     else:
         return render_template('home-anon.html')
 
 ##############################################################################
 # Likes routes:
+
 
 @app.post('/messages/<int:message_id>/like')
 def toggle_like(message_id):
@@ -401,19 +406,20 @@ def toggle_like(message_id):
 
     if (not g.user
         or not g.csrf_form.validate_on_submit()
-        or liked_message in g.user.messages):
+            or liked_message in g.user.messages):
 
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    #toggle like
+    # toggle like
     if liked_message in g.user.liked_messages:
         g.user.liked_messages.remove(liked_message)
     else:
         g.user.liked_messages.append(liked_message)
     db.session.commit()
 
-    return redirect ('/')
+    return redirect('/')
+
 
 @app.get('/users/<int:user_id>/likes')
 def show_user_liked_messages(user_id):
